@@ -6,6 +6,9 @@ import (
 	"os"
 
 	"github.com/joho/godotenv"
+	_ "github.com/PaulSonOfLars/gotgbot/v2"
+	_ "github.com/PaulSonOfLars/gotgbot/v2/ext"
+	_ "github.com/PaulSonOfLars/gotgbot/v2/ext/handlers"
 )
 
 var botToken string
