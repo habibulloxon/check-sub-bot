@@ -1,6 +1,8 @@
 package main
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -13,6 +15,33 @@ import (
 )
 
 var botToken string
+
+type TelegramChatMember struct {
+	CanAddWebPagePreviews bool   `json:"can_add_web_page_previews"`
+	CanBeEdited           bool   `json:"can_be_edited"`
+	CanChangeInfo         bool   `json:"can_change_info"`
+	CanDeleteMessages     bool   `json:"can_delete_messages"`
+	CanEditMessages       bool   `json:"can_edit_messages"`
+	CanInviteUsers        bool   `json:"can_invite_users"`
+	CanJoinGroups         bool   `json:"can_join_groups"`
+	CanPinMessages        bool   `json:"can_pin_messages"`
+	CanPostMessages       bool   `json:"can_post_messages"`
+	CanPromoteMembers     bool   `json:"can_promote_members"`
+	CanReadMessages       bool   `json:"can_read_messages"`
+	CanRestrictMembers    bool   `json:"can_restrict_members"`
+	CanSendMediaMessages  bool   `json:"can_send_media_messages"`
+	CanSendMessages       bool   `json:"can_send_messages"`
+	CanSendOtherMessages  bool   `json:"can_send_other_messages"`
+	CanSendPolls          bool   `json:"can_send_polls"`
+	Status                string `json:"status"`
+	UntilDate             int64  `json:"until_date"`
+	User                  struct {
+		FirstName string `json:"first_name"`
+		ID        int64  `json:"id"`
+		LastName  string `json:"last_name"`
+		Username  string `json:"username"`
+	} `json:"user"`
+}
 
 func main() {
 	err := godotenv.Load()
@@ -59,11 +88,42 @@ func main() {
 }
 
 func start(b *gotgbot.Bot, ctx *ext.Context) error {
-	_, err := ctx.EffectiveMessage.Reply(b, fmt.Sprintf("Hello, I'm @%s. I <b>will check your subscriptions</b>", b.User.Username), &gotgbot.SendMessageOpts{
+	channelID := int64(-1002013563867)
+	userID := int64(ctx.EffectiveUser.Id)
+
+	chatMember, err := b.GetChatMember(channelID, userID, nil)
+	if err != nil {
+		log.Println("Error:", err)
+		return err
+	}
+
+	chatMemberJSON, jsonErr := json.Marshal(chatMember)
+	if jsonErr != nil {
+		log.Println("Error:", jsonErr)
+		return jsonErr
+	}
+
+	var telegramChatMember TelegramChatMember
+
+	reader := bytes.NewReader(chatMemberJSON)
+
+	decoder := json.NewDecoder(reader)
+	err = decoder.Decode(&telegramChatMember)
+	if err != nil {
+		log.Println("Error:", err)
+		return err
+	}
+
+	userName := telegramChatMember.User.Username
+	status := telegramChatMember.Status
+
+	log.Printf("Username: %s | Status: %s", userName, status)
+
+	_, sendErr := ctx.EffectiveMessage.Reply(b, fmt.Sprintf("<b>Username:</b> %s\n<b>Status:</b> %s\n", userName, status), &gotgbot.SendMessageOpts{
 		ParseMode: "html",
 	})
-	if err != nil {
-		return fmt.Errorf("failed to send start message: %w", err)
+	if sendErr != nil {
+		return fmt.Errorf("failed to send start message: %w", sendErr)
 	}
 	return nil
 }
