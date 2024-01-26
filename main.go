@@ -119,7 +119,7 @@ func start(b *gotgbot.Bot, ctx *ext.Context) error {
 
 	log.Printf("Username: %s | Status: %s", userName, status)
 
-	_, sendErr := ctx.EffectiveMessage.Reply(b, fmt.Sprintf("<b>Username:</b> %s\n<b>Status:</b> %s\n", userName, status), &gotgbot.SendMessageOpts{
+	_, sendErr := ctx.EffectiveMessage.Reply(b, fmt.Sprintf("<b>Username:</b> @%s\n<b>Status:</b> %s\n", userName, status), &gotgbot.SendMessageOpts{
 		ParseMode: "html",
 	})
 	if sendErr != nil {
